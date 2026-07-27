@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f6db5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Fluxo Fácil">
+  <meta name="description" content="Controle financeiro simples, visual e fácil de analisar.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Fluxo Fácil</title>
+</head>
+<body>
+  <div id="splash" class="splash" aria-hidden="true">
+    <img src="icons/icon-192.png" alt="">
+    <strong>Fluxo Fácil</strong>
+    <span>Seu controle financeiro</span>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="icons/icon-192.png" alt="Fluxo Fácil">
+        <div>
+          <strong>Fluxo Fácil</strong>
+          <span>Controle financeiro</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="dashboard">
+          <span>▦</span> Dashboard
+        </button>
+        <button class="nav-item" data-view="transactions">
+          <span>☷</span> Lançamentos
+        </button>
+        <button class="nav-item" data-view="categories">
+          <span>⌑</span> Categorias
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="installBtn" class="install-btn hidden">⬇ Instalar aplicativo</button>
+        <small>Dados salvos neste aparelho</small>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="menu-btn" aria-label="Abrir menu">☰</button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Visão geral das suas finanças</p>
+        </div>
+        <button id="newTransactionBtn" class="primary-btn">＋ Novo lançamento</button>
+      </header>
+
+      <section id="dashboardView" class="view active">
+        <div class="period-toolbar">
+          <label>
+            Período
+            <input type="month" id="dashboardMonth">
+          </label>
+          <button id="goCurrentMonth" class="secondary-btn">Mês atual</button>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card blue">
+            <div class="summary-icon">▣</div>
+            <div>
+              <span>Saldo atual</span>
+              <strong id="currentBalance">R$ 0,00</strong>
+            </div>
+          </article>
+          <article class="summary-card green">
+            <div class="summary-icon">↗</div>
+            <div>
+              <span>Receitas do mês</span>
+              <strong id="monthIncome">R$ 0,00</strong>
+            </div>
+          </article>
+          <article class="summary-card red">
+            <div class="summary-icon">↘</div>
+            <div>
+              <span>Despesas do mês</span>
+              <strong id="monthExpense">R$ 0,00</strong>
+            </div>
+          </article>
+          <article class="summary-card green">
+            <div class="summary-icon">⚖</div>
+            <div>
+              <span>Resultado do mês</span>
+              <strong id="monthResult">R$ 0,00</strong>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Receitas × despesas</h2>
+                <p>Comparativo dos últimos 6 meses</p>
+              </div>
+            </div>
+            <div class="bar-chart" id="monthlyChart" aria-label="Gráfico de receitas e despesas"></div>
+            <div class="chart-legend">
+              <span><i class="dot income"></i>Receitas</span>
+              <span><i class="dot expense"></i>Despesas</span>
+            </div>
+          </article>
+
+          <article class="panel category-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Despesas por categoria</h2>
+                <p>Distribuição no período</p>
+              </div>
+            </div>
+            <div class="donut-wrap">
+              <div id="categoryDonut" class="donut">
+                <div class="donut-center">
+                  <span>Total</span>
+                  <strong id="donutTotal">R$ 0,00</strong>
+                </div>
+              </div>
+              <div id="categoryLegend" class="category-legend"></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Movimentações recentes</h2>
+              <p>Últimos lançamentos registrados</p>
+            </div>
+            <button class="link-btn" data-view-link="transactions">Ver todos</button>
+          </div>
+          <div id="recentTransactions" class="transaction-list"></div>
+        </article>
+      </section>
+
+      <section id="transactionsView" class="view">
+        <article class="panel filters-panel">
+          <div class="filters-grid">
+            <label>
+              Buscar
+              <input type="search" id="filterSearch" placeholder="Descrição ou observação">
+            </label>
+            <label>
+              Mês
+              <input type="month" id="filterMonth">
+            </label>
+            <label>
+              Tipo
+              <select id="filterType">
+                <option value="">Todos</option>
+                <option value="income">Receitas</option>
+                <option value="expense">Despesas</option>
+              </select>
+            </label>
+            <label>
+              Categoria
+              <select id="filterCategory">
+                <option value="">Todas</option>
+              </select>
+            </label>
+            <label>
+              Situação
+              <select id="filterStatus">
+                <option value="">Todas</option>
+                <option value="paid">Pago/Recebido</option>
+                <option value="pending">Pendente</option>
+              </select>
+            </label>
+            <button id="clearFilters" class="secondary-btn filter-clear">Limpar filtros</button>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Lançamentos</h2>
+              <p id="transactionCount">0 registros</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Situação</th>
+                  <th class="align-right">Valor</th>
+                  <th class="align-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTable"></tbody>
+            </table>
+          </div>
+          <div id="transactionsMobile" class="mobile-cards"></div>
+        </article>
+      </section>
+
+      <section id="categoriesView" class="view">
+        <div class="categories-layout">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Nova categoria</h2>
+                <p>Crie categorias para organizar seus lançamentos</p>
+              </div>
+            </div>
+            <form id="categoryForm" class="category-form">
+              <label>
+                Nome da categoria
+                <input id="categoryName" maxlength="30" required placeholder="Ex.: Marketing">
+              </label>
+              <label>
+                Tipo padrão
+                <select id="categoryType">
+                  <option value="expense">Despesa</option>
+                  <option value="income">Receita</option>
+                  <option value="both">Ambos</option>
+                </select>
+              </label>
+              <label>
+                Cor
+                <input id="categoryColor" type="color" value="#0f6db5">
+              </label>
+              <button class="primary-btn" type="submit">Adicionar categoria</button>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Categorias cadastradas</h2>
+                <p>As categorias em uso não podem ser excluídas</p>
+              </div>
+            </div>
+            <div id="categoriesList" class="categories-list"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="overlay" class="overlay hidden"></div>
+
+  <dialog id="transactionModal" class="modal">
+    <form id="transactionForm" method="dialog">
+      <div class="modal-header">
+        <div>
+          <h2 id="transactionModalTitle">Novo lançamento</h2>
+          <p>Preencha os dados da movimentação</p>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="transactionModal">✕</button>
+      </div>
+
+      <input type="hidden" id="transactionId">
+
+      <div class="form-grid">
+        <label>
+          Tipo
+          <select id="transactionType" required>
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+        </label>
+        <label>
+          Data
+          <input type="date" id="transactionDate" required>
+        </label>
+        <label class="span-2">
+          Descrição
+          <input id="transactionDescription" maxlength="80" required placeholder="Ex.: Conta de energia">
+        </label>
+        <label>
+          Categoria
+          <select id="transactionCategory" required></select>
+        </label>
+        <label>
+          Valor
+          <input type="number" id="transactionValue" min="0.01" step="0.01" required placeholder="0,00">
+        </label>
+        <label>
+          Situação
+          <select id="transactionStatus">
+            <option value="paid">Pago/Recebido</option>
+            <option value="pending">Pendente</option>
+          </select>
+        </label>
+        <label class="span-2">
+          Observação
+          <textarea id="transactionNote" maxlength="200" rows="3" placeholder="Opcional"></textarea>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" data-close-modal="transactionModal">Cancelar</button>
+        <button type="submit" class="primary-btn">Salvar lançamento</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="iosInstallModal" class="modal small-modal">
+    <div class="modal-header">
+      <div>
+        <h2>Instalar no iPhone ou iPad</h2>
+        <p>Use o Safari para adicionar o app à tela inicial.</p>
+      </div>
+      <button type="button" class="icon-btn" data-close-modal="iosInstallModal">✕</button>
+    </div>
+    <ol class="ios-steps">
+      <li>Abra esta página no <strong>Safari</strong>.</li>
+      <li>Toque no botão <strong>Compartilhar</strong>.</li>
+      <li>Escolha <strong>Adicionar à Tela de Início</strong>.</li>
+      <li>Confirme tocando em <strong>Adicionar</strong>.</li>
+    </ol>
+    <div class="modal-actions">
+      <button type="button" class="primary-btn" data-close-modal="iosInstallModal">Entendi</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast hidden">
+    <span id="toastMessage"></span>
+    <button id="toastAction" class="hidden"></button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
