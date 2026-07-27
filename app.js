@@ -13,7 +13,12 @@
   const shell = document.querySelector(".app-shell");
   if (shell) shell.style.display = "none";
 
-  const files = ["./supabase-core.js?v=5", "./ui-online.js?v=5"];
+  const files = [
+    "./supabase-core.js?v=6",
+    "./ui-online.js?v=6",
+    "./auth-ptbr.js?v=6"
+  ];
+
   const load = src => new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = src;
