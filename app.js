@@ -2,9 +2,8 @@
   "use strict";
 
   const STORAGE_KEYS = {
-    transactions: "fluxoFacil.transactions.v1",
-    categories: "fluxoFacil.categories.v1",
-    initialized: "fluxoFacil.initialized.v1"
+    transactions: "fluxoFacil.transactions.v2",
+    categories: "fluxoFacil.categories.v2"
   };
 
   const DEFAULT_CATEGORIES = [
@@ -71,70 +70,23 @@
     localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(state.categories));
   }
 
-  function seedData(categories) {
-    const today = new Date();
-    const items = [];
-    const cat = name => categories.find(c => c.name === name)?.id;
-
-    for (let offset = 5; offset >= 0; offset--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - offset, 5);
-      items.push({
-        id: crypto.randomUUID(),
-        type: "income",
-        date: isoDate(d),
-        description: "Salário",
-        categoryId: cat("Salário"),
-        value: 6200 + (5 - offset) * 80,
-        status: "paid",
-        note: ""
-      });
-      items.push({
-        id: crypto.randomUUID(),
-        type: "income",
-        date: isoDate(new Date(d.getFullYear(), d.getMonth(), 18)),
-        description: "Serviço extra",
-        categoryId: cat("Serviços"),
-        value: 900 + (5 - offset) * 50,
-        status: offset === 0 ? "pending" : "paid",
-        note: ""
-      });
-      const expenses = [
-        ["Aluguel", "Moradia", 1450],
-        ["Supermercado", "Alimentação", 720],
-        ["Combustível", "Transporte", 320],
-        ["Streaming", "Assinaturas", 89],
-        ["Curso online", "Educação", 199]
-      ];
-      expenses.forEach(([description, category, value], idx) => {
-        items.push({
-          id: crypto.randomUUID(),
-          type: "expense",
-          date: isoDate(new Date(d.getFullYear(), d.getMonth(), 8 + idx * 4)),
-          description,
-          categoryId: cat(category),
-          value,
-          status: "paid",
-          note: ""
-        });
-      });
-    }
-    return items;
-  }
-
   function loadState() {
     try {
-      state.categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "null") || DEFAULT_CATEGORIES;
-      state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactions) || "null") || [];
+      const storedCategories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "null");
+      const storedTransactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactions) || "null");
+
+      state.categories = Array.isArray(storedCategories) && storedCategories.length
+        ? storedCategories
+        : DEFAULT_CATEGORIES;
+      state.transactions = Array.isArray(storedTransactions)
+        ? storedTransactions
+        : [];
     } catch {
       state.categories = DEFAULT_CATEGORIES;
       state.transactions = [];
     }
 
-    if (!localStorage.getItem(STORAGE_KEYS.initialized)) {
-      state.transactions = seedData(state.categories);
-      localStorage.setItem(STORAGE_KEYS.initialized, "1");
-      saveState();
-    }
+    saveState();
   }
 
   function getCategory(id) {
