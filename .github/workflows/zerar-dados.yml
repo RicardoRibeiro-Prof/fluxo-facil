@@ -1,0 +1,99 @@
+name: Zerar dados demonstrativos
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/zerar-dados.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  zerar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v6
+
+      - name: Remover dados demonstrativos
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+
+          app = app.replace(
+          '''  const STORAGE_KEYS = {
+              transactions: "fluxoFacil.transactions.v1",
+              categories: "fluxoFacil.categories.v1",
+              initialized: "fluxoFacil.initialized.v1"
+            };''',
+          '''  const STORAGE_KEYS = {
+              transactions: "fluxoFacil.transactions.v2",
+              categories: "fluxoFacil.categories.v2"
+            };'''
+          )
+
+          seed_start = app.find('  function seedData(categories) {')
+          load_start = app.find('  function loadState() {', seed_start)
+          if seed_start != -1 and load_start != -1:
+              app = app[:seed_start] + app[load_start:]
+
+          old_load = '''  function loadState() {
+              try {
+                state.categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "null") || DEFAULT_CATEGORIES;
+                state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactions) || "null") || [];
+              } catch {
+                state.categories = DEFAULT_CATEGORIES;
+                state.transactions = [];
+              }
+
+              if (!localStorage.getItem(STORAGE_KEYS.initialized)) {
+                state.transactions = seedData(state.categories);
+                localStorage.setItem(STORAGE_KEYS.initialized, "1");
+                saveState();
+              }
+            }'''
+
+          new_load = '''  function loadState() {
+              try {
+                const storedCategories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories) || "null");
+                const storedTransactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactions) || "null");
+
+                state.categories = Array.isArray(storedCategories) && storedCategories.length
+                  ? storedCategories
+                  : DEFAULT_CATEGORIES;
+                state.transactions = Array.isArray(storedTransactions)
+                  ? storedTransactions
+                  : [];
+              } catch {
+                state.categories = DEFAULT_CATEGORIES;
+                state.transactions = [];
+              }
+
+              saveState();
+            }'''
+
+          if old_load not in app:
+              raise SystemExit('Bloco loadState original não encontrado.')
+          app = app.replace(old_load, new_load)
+          app_path.write_text(app, encoding='utf-8')
+
+          sw_path = Path('sw.js')
+          sw = sw_path.read_text(encoding='utf-8')
+          sw = sw.replace('const CACHE_NAME = "fluxo-facil-v1";', 'const CACHE_NAME = "fluxo-facil-v2";')
+          sw_path.write_text(sw, encoding='utf-8')
+          PY
+
+      - name: Publicar alteração
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js sw.js
+          git commit -m "Zerar dados demonstrativos do Fluxo Fácil"
+          git push
