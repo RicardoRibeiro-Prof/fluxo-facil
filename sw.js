@@ -1,4 +1,4 @@
-const CACHE_NAME = "fluxo-facil-v5-login";
+const CACHE_NAME = "fluxo-facil-v6-auth-ptbr";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const APP_SHELL = [
   "./app.js",
   "./supabase-core.js",
   "./ui-online.js",
+  "./auth-ptbr.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -26,10 +27,6 @@ self.addEventListener("activate", event => {
     caches.keys()
       .then(keys => Promise.all(keys.map(key => key === CACHE_NAME ? null : caches.delete(key))))
       .then(() => self.clients.claim())
-      .then(async () => {
-        const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-        clients.forEach(client => client.navigate(client.url));
-      })
   );
 });
 
